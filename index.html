@@ -7,89 +7,111 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .product-card { transition: all 0.3s; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; background: white; }
-        .product-img { width: 100%; height: 120px; object-fit: cover; background: #f1f5f9; }
-        .cart-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
-        #modal-cadastro, #modal-cardapio { display: none; }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .product-card { border-radius: 20px; border: 1px solid #e2e8f0; background: white; overflow: hidden; }
+        .cart-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+        
+        .item-box { border: 2px solid #f1f5f9; border-radius: 15px; padding: 10px; text-align: center; background: #fff; transition: 0.3s; }
+        .item-box.selecionado { border-color: #ef4444; background: #fef2f2; }
+        .btn-add { background: #f1f5f9; color: #64748b; font-weight: 800; font-size: 9px; padding: 8px; border-radius: 10px; width: 100%; margin-top: 5px; }
+        .selecionado .btn-add { background: #ef4444; color: #fff; }
+
+        #modal-montar, #modal-cadastro, #modal-cardapio { display: none; }
         .btn-cardapio { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
-        .loja-fechada-overlay { filter: grayscale(1); pointer-events: none; opacity: 0.6; }
-        #texto-cardapio-view { white-space: pre-wrap; word-wrap: break-word; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-up { animation: slideUp 0.3s ease-out; }
     </style>
 </head>
 <body class="pb-24">
 
-    <div id="aviso-fechado" class="hidden bg-yellow-500 text-white text-[10px] font-bold text-center py-1 uppercase tracking-widest">
-        ⚠️ Loja fechada no momento - Apenas consulta
-    </div>
-
     <header class="bg-red-600 text-white p-5 sticky top-0 z-50 shadow-lg flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-black italic tracking-tighter">RESTAURANTE VITÓRIA</h1>
-            <p class="text-[10px] font-medium opacity-80 uppercase tracking-widest">Pedidos Online</p>
-        </div>
-        <button onclick="toggleCarrinho()" class="relative p-3 bg-red-700 rounded-2xl shadow-inner">
-            <i class="fas fa-shopping-bag text-xl"></i>
+        <h1 class="text-xl font-black italic uppercase tracking-tighter">RESTAURANTE VITÓRIA</h1>
+        <button onclick="toggleCarrinho()" class="relative p-3 bg-red-700 rounded-xl">
+            <i class="fas fa-shopping-basket text-xl"></i>
             <span id="cart-count" class="cart-badge">0</span>
         </button>
     </header>
 
-    <main class="p-4" id="main-content">
-        <button onclick="abrirCardapio()" class="btn-cardapio w-full py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-3 text-lg mb-8 active:scale-95 transition-transform">
+    <main class="p-4">
+        <!-- BOTÃO DO CARDÁPIO RECOLOCADO -->
+        <button onclick="abrirCardapio()" class="btn-cardapio w-full py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-3 text-lg mb-8 active:scale-95 transition-transform shadow-xl">
             <i class="fas fa-utensils"></i> VEJA O CARDÁPIO DE HOJE
         </button>
 
-        <h2 class="text-gray-800 font-black text-xl mb-4 flex items-center gap-2 uppercase italic">
-            <span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Opções do Dia
-        </h2>
-
-        <div id="lista-produtos" class="grid grid-cols-2 gap-3">
-            <div class="col-span-2 text-center py-10 text-gray-400">Carregando produtos...</div>
-        </div>
+        <div id="lista-produtos" class="grid grid-cols-2 gap-3"></div>
     </main>
 
-    <!-- Modal Cardápio -->
+    <!-- Modal Cardápio (Visualização do Texto do Admin) -->
     <div id="modal-cardapio" class="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col items-center justify-center p-6">
         <button onclick="fecharCardapio()" class="absolute top-5 right-5 text-white text-4xl">&times;</button>
-        <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[80vh]">
-            <h3 class="text-red-600 font-black text-xl mb-4 text-center uppercase italic border-b pb-2">Prato do Dia</h3>
-            <div id="texto-cardapio-view" class="text-gray-700 text-lg leading-relaxed font-medium text-center italic">Carregando...</div>
-            <button onclick="fecharCardapio()" class="w-full mt-6 bg-gray-100 py-3 rounded-xl font-bold text-gray-500 uppercase text-xs">Fechar</button>
+        <div class="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl overflow-y-auto max-h-[80vh]">
+            <h3 class="text-red-600 font-black text-xl mb-4 text-center uppercase italic border-b pb-2">Opções de Hoje</h3>
+            <div id="texto-cardapio-view" class="text-gray-700 text-lg leading-relaxed font-semibold text-center italic space-y-4">
+                <!-- Conteúdo preenchido via JS -->
+            </div>
+            <button onclick="fecharCardapio()" class="w-full mt-8 bg-gray-100 py-3 rounded-xl font-bold text-gray-400 uppercase text-xs">Voltar</button>
+        </div>
+    </div>
+
+    <!-- GAVETA MONTAGEM -->
+    <div id="modal-montar" class="fixed inset-0 bg-black bg-opacity-80 z-[110] flex items-end justify-center">
+        <div class="bg-white w-full rounded-t-[40px] p-6 animate-up overflow-y-auto max-h-[95vh]">
+            <div class="w-10 h-1 bg-gray-200 mx-auto mb-4 rounded-full"></div>
+            <h2 id="montar-titulo" class="text-lg font-black text-gray-800 uppercase italic text-center"></h2>
+            <p class="text-red-600 font-bold text-[10px] uppercase text-center mb-6 italic">2 carnes valor normal | 3 ou mais +Adicional</p>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase mb-2 block tracking-widest">Opções de Carnes</label>
+                    <div class="grid grid-cols-2 gap-3" id="container-carnes"></div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-gray-400 uppercase mb-2 block tracking-widest">Acompanhamentos</label>
+                    <div class="grid grid-cols-2 gap-3" id="container-acomps"></div>
+                </div>
+                
+                <div class="pt-4 border-t text-center">
+                    <p id="aviso-extra" class="text-[11px] text-red-600 font-black mb-2 hidden animate-pulse">⚠️ ADICIONAL DE CARNE MISTA ATIVADO!</p>
+                    <div id="resumo" class="bg-gray-50 p-4 rounded-2xl text-[10px] font-bold text-gray-500 italic"></div>
+                </div>
+                <textarea id="montar-obs" placeholder="Alguma observação? (ex: s/ cebola)" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none text-sm h-16 italic"></textarea>
+            </div>
+
+            <button onclick="confirmar()" class="w-full bg-green-500 text-white py-5 rounded-3xl font-black text-lg mt-6 shadow-xl">ADICIONAR AO PEDIDO</button>
+            <button onclick="fechar()" class="w-full text-gray-400 mt-4 text-[10px] font-black uppercase">Cancelar</button>
         </div>
     </div>
 
     <!-- Carrinho -->
     <div id="carrinho-view" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden">
-        <div class="absolute right-0 top-0 w-full max-w-[300px] h-full bg-white shadow-2xl flex flex-col">
-            <div class="p-4 bg-red-600 text-white flex justify-between items-center">
-                <h2 class="font-bold uppercase italic">Meu Pedido</h2>
+        <div class="absolute right-0 top-0 w-full max-w-[300px] h-full bg-white flex flex-col">
+            <div class="p-6 bg-red-600 text-white flex justify-between items-center shadow-md">
+                <h2 class="font-bold uppercase italic">Carrinho</h2>
                 <button onclick="toggleCarrinho()" class="text-3xl">&times;</button>
             </div>
             <div id="itens-carrinho" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
-            <div class="p-5 border-t bg-gray-50">
-                <div class="flex justify-between mb-4">
-                    <span class="font-bold text-gray-500 uppercase text-xs">Total:</span>
-                    <span id="total-carrinho" class="text-2xl font-black text-red-600 font-mono">R$ 0,00</span>
-                </div>
-                <button id="btn-finalizar-pedido" onclick="abrirCadastro()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg">FINALIZAR PEDIDO</button>
+            <div class="p-6 border-t bg-gray-50">
+                <div class="flex justify-between mb-4"><span class="font-bold text-gray-400 text-xs uppercase">Total</span><span id="total" class="text-xl font-black text-red-600">R$ 0,00</span></div>
+                <button onclick="abrirCadastro()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black shadow-lg">FINALIZAR PEDIDO</button>
             </div>
         </div>
     </div>
 
-    <!-- Cadastro Cliente -->
-    <div id="modal-cadastro" class="fixed inset-0 bg-black bg-opacity-80 z-[70] items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[30px] p-6 shadow-2xl">
-            <h2 class="text-2xl font-black text-center text-gray-800 mb-6 uppercase italic">Entrega</h2>
+    <!-- Cadastro -->
+    <div id="modal-cadastro" class="fixed inset-0 bg-black bg-opacity-80 z-[120] items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl text-center">
+            <h2 class="text-2xl font-black mb-6 uppercase italic">Checkout</h2>
             <div class="space-y-4">
-                <input type="text" id="nome" placeholder="Seu Nome" class="w-full bg-gray-100 border-none p-4 rounded-2xl outline-none">
-                <input type="text" id="endereco" placeholder="Endereço e Bairro" class="w-full bg-gray-100 border-none p-4 rounded-2xl outline-none">
-                <input type="tel" id="whatsapp" placeholder="WhatsApp (DDD)" class="w-full bg-gray-100 border-none p-4 rounded-2xl outline-none">
+                <input type="text" id="nome" placeholder="Seu Nome" class="w-full bg-gray-100 p-4 rounded-2xl outline-none border-2 border-gray-100">
+                <input type="text" id="endereco" placeholder="Endereço de Entrega" class="w-full bg-gray-100 p-4 rounded-2xl outline-none border-2 border-gray-100">
+                <input type="tel" id="whatsapp" placeholder="WhatsApp (DDD)" class="w-full bg-gray-100 p-4 rounded-2xl outline-none">
             </div>
-            <button onclick="enviarWhatsApp()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black text-lg mt-8 flex items-center justify-center gap-2"><i class="fab fa-whatsapp text-2xl"></i> ENVIAR PEDIDO</button>
-            <button onclick="fecharCadastro()" class="w-full text-gray-400 mt-4 text-xs font-bold uppercase">Voltar</button>
+            <button onclick="enviarWhatsApp()" class="w-full bg-green-500 text-white py-5 rounded-3xl font-black text-lg mt-8">ENVIAR NO WHATSAPP</button>
+            <button onclick="fecharCadastro()" class="w-full text-gray-400 mt-4 text-[10px] font-black uppercase text-center">Voltar</button>
         </div>
     </div>
 
+    <!-- Link Admin -->
     <a href="admin.html" class="fixed bottom-4 left-4 bg-gray-800 text-white px-3 py-2 rounded-full text-[10px] font-bold opacity-30 z-50">⚙️ ADMIN</a>
 
     <script type="module">
@@ -108,30 +130,22 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let carrinho = [];
-        let forcarFeijoada = false;
-        const diaHoje = new Date().getDay();
+        let carrinho = [], config = {}, selCarnes = [], selAcomps = [], baseMarmita = { nome: "", preco: 0 };
 
-        // Escutar Configurações Globais
         onValue(ref(db, 'config'), (snap) => {
-            const cfg = snap.val() || {};
-            forcarFeijoada = cfg.forcar_feijoada || false;
+            config = snap.val() || {};
             
-            const btn = document.getElementById('btn-finalizar-pedido');
-            if (cfg.loja_aberta === false) {
-                document.getElementById('aviso-fechado').classList.remove('hidden');
-                btn.disabled = true; btn.classList.replace('bg-green-500', 'bg-gray-400');
-                btn.innerText = "LOJA FECHADA";
-            } else {
-                document.getElementById('aviso-fechado').classList.add('hidden');
-                btn.disabled = false; btn.classList.replace('bg-gray-400', 'bg-green-500');
-                btn.innerText = "FINALIZAR PEDIDO";
-            }
-            carregarProdutos(); // Recarrega sempre que o status da feijoada mudar
-        });
+            // Atualiza o texto do modal do Cardápio
+            const carnesList = (config.carnes || "").split('\n').filter(l => l.trim().length > 0).join(', ');
+            const acompsList = (config.acompanhamentos || "").split('\n').filter(l => l.trim().length > 0).join(', ');
+            document.getElementById('texto-cardapio-view').innerHTML = `
+                <p class="text-red-600 font-bold uppercase text-xs">Carnes:</p>
+                <p class="mb-4">${carnesList || 'Não informado'}</p>
+                <p class="text-red-600 font-bold uppercase text-xs">Acompanhamentos:</p>
+                <p>${acompsList || 'Não informado'}</p>
+            `;
 
-        onValue(ref(db, 'config/texto_cardapio'), (snap) => {
-            document.getElementById('texto-cardapio-view').innerText = snap.val() || "Atualizando menu...";
+            carregarProdutos();
         });
 
         function carregarProdutos() {
@@ -139,74 +153,123 @@
                 const data = snap.val();
                 const container = document.getElementById('lista-produtos');
                 container.innerHTML = "";
-                
-                // Define se a feijoada está ativa agora
-                const feijoadaAtiva = (forcarFeijoada || diaHoje === 6);
+                const feiAtiva = (config.forcar_feijoada || new Date().getDay() === 6);
 
                 for (let id in data) {
                     const p = data[id];
-                    const nome = (p.nome || "").toLowerCase();
-                    
-                    // 1. REGRAS DE BLOQUEIO PERMANENTE
-                    if (nome.includes("buffet") || nome.includes("vidro")) continue;
+                    const n = (p.nome || "").toLowerCase();
+                    if (n.includes("buffet") || n.includes("vidro")) continue;
+                    if (feiAtiva) { if (n.includes("marmitex") && !n.includes("feijoada")) continue; }
+                    else { if (n.includes("feijoada")) continue; }
 
-                    // 2. REGRA DE ALTERNÂNCIA (FEIJOADA VS MARMITEX)
-                    if (feijoadaAtiva) {
-                        // Se a feijoada está ativa, esconde as Marmitex comuns
-                        if (nome.includes("marmitex") && !nome.includes("feijoada")) continue;
-                    } else {
-                        // Se NÃO é dia de feijoada, esconde a feijoada
-                        if (nome.includes("feijoada")) continue;
-                    }
-
-                    const img = p.foto || p.imagem || 'https://via.placeholder.com/150?text=Vitoria';
+                    const isMarmita = n.includes("marmita") || n.includes("marmitex");
                     container.innerHTML += `
-                        <div class="product-card flex flex-col shadow-sm">
-                            <img src="${img}" class="product-img" onerror="this.src='https://via.placeholder.com/150?text=Restaurante'">
-                            <div class="p-3 flex flex-col flex-1 justify-between">
-                                <h3 class="text-[10px] font-bold text-gray-700 uppercase mb-1 line-clamp-2">${p.nome}</h3>
-                                <div>
-                                    <p class="text-red-600 font-black text-sm mb-2 text-right">R$ ${parseFloat(p.preco).toFixed(2)}</p>
-                                    <button onclick="addCarrinho('${p.nome}', ${p.preco})" class="w-full bg-red-50 text-red-600 py-2.5 rounded-xl text-[10px] font-black active:scale-95 transition-all">+ ADICIONAR</button>
-                                </div>
+                        <div class="product-card flex flex-col shadow-sm text-center">
+                            <img src="${p.foto || 'https://via.placeholder.com/150'}" class="h-24 w-full object-cover">
+                            <div class="p-3">
+                                <h3 class="text-[9px] font-black uppercase h-8 leading-tight">${p.nome}</h3>
+                                <p class="text-red-600 font-black text-sm italic">R$ ${p.preco.toFixed(2)}</p>
+                                <button onclick="${isMarmita ? `abrirMontagem('${p.nome}', ${p.preco})` : `addDireto('${p.nome}', ${p.preco})`}" class="w-full bg-red-600 text-white py-2 rounded-xl text-[9px] font-black uppercase mt-2">${isMarmita ? 'MONTAR' : 'ADICIONAR'}</button>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 }
             }, { onlyOnce: true });
         }
 
-        window.abrirCardapio = () => document.getElementById('modal-cardapio').style.display = 'flex';
-        window.fecharCardapio = () => document.getElementById('modal-cardapio').style.display = 'none';
-        window.toggleCarrinho = () => document.getElementById('carrinho-view').classList.toggle('hidden');
-        window.addCarrinho = (nome, preco) => { carrinho.push({ nome, preco }); atualizarInterface(); };
-        window.atualizarInterface = () => {
-            document.getElementById('cart-count').innerText = carrinho.length;
-            const itensDiv = document.getElementById('itens-carrinho');
-            itensDiv.innerHTML = ""; let t = 0;
-            carrinho.forEach((item, index) => {
-                t += parseFloat(item.preco);
-                itensDiv.innerHTML += `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                    <div class="max-w-[70%]"><p class="text-[9px] font-bold uppercase truncate">${item.nome}</p><p class="text-sm font-black text-red-600">R$ ${item.preco.toFixed(2)}</p></div>
-                    <button onclick="removerItem(${index})" class="text-gray-300"><i class="fas fa-trash"></i></button>
-                </div>`;
-            });
-            document.getElementById('total-carrinho').innerText = `R$ ${t.toFixed(2)}`;
+        window.abrirMontagem = (nome, preco) => {
+            baseMarmita = { nome, preco }; selCarnes = []; selAcomps = [];
+            document.getElementById('montar-titulo').innerText = nome;
+            
+            const render = (texto, tipo) => {
+                let h = "";
+                texto.split('\n').filter(l => l.trim().length > 1).forEach((l, i) => {
+                    h += `<div class="item-box ${tipo}-box" id="${tipo}-${i}"><p class="text-[9px] font-bold uppercase h-6 flex items-center justify-center leading-tight">${l.trim()}</p><button onclick="toggle('${l.trim()}', '${tipo}', ${i})" class="btn-add"><i class="fas fa-plus"></i> ADD</button></div>`;
+                });
+                return h;
+            };
+
+            document.getElementById('container-carnes').innerHTML = render(config.carnes || "", "carne");
+            document.getElementById('container-acomps').innerHTML = render(config.acompanhamentos || "", "acomp");
+            document.getElementById('modal-montar').style.display = 'flex';
+            atualizarResumo();
         };
-        window.removerItem = (index) => { carrinho.splice(index, 1); atualizarInterface(); };
-        window.abrirCadastro = () => { if(carrinho.length > 0) document.getElementById('modal-cadastro').style.display = 'flex'; };
-        window.fecharCadastro = () => document.getElementById('modal-cadastro').style.display = 'none';
+
+        window.toggle = (item, tipo, i) => {
+            const el = document.getElementById(`${tipo}-${i}`);
+            const lower = item.toLowerCase();
+            
+            if (lower.includes("arroz") || lower.includes("feijão") || lower.includes("feijao")) {
+                const cat = lower.includes("arroz") ? "arroz" : "feijao";
+                selAcomps = selAcomps.filter(x => !x.toLowerCase().includes(cat));
+                document.querySelectorAll('.acomp-box').forEach(card => {
+                    if(card.innerText.toLowerCase().includes(cat)) card.classList.remove('selecionado');
+                });
+            }
+
+            if (tipo === 'carne') {
+                if (selCarnes.includes(item)) selCarnes = selCarnes.filter(x => x !== item);
+                else selCarnes.push(item);
+            } else {
+                if (selAcomps.includes(item)) selAcomps = selAcomps.filter(x => x !== item);
+                else selAcomps.push(item);
+            }
+            el.classList.toggle('selecionado');
+            atualizarResumo();
+        };
+
+        function atualizarResumo() {
+            const isExtra = selCarnes.length >= 3;
+            document.getElementById('aviso-extra').classList.toggle('hidden', !isExtra);
+            document.getElementById('resumo').innerText = [...selCarnes, ...selAcomps].join(' + ') || "Monte seu prato clicando nos itens...";
+        }
+
+        window.confirmar = () => {
+            if(selCarnes.length === 0 && selAcomps.length === 0) return alert("Monte sua marmita!");
+            let precoFinal = baseMarmita.preco;
+            let infoExtra = "";
+            if (selCarnes.length >= 3) {
+                precoFinal += parseFloat(config.valor_carne_extra) || 0;
+                infoExtra = " (Mista +Adicional)";
+            }
+            const obs = document.getElementById('montar-obs').value;
+            carrinho.push({ 
+                nome: `${baseMarmita.nome} [${[...selCarnes, ...selAcomps].join(', ')}${obs ? ' | Obs: ' + obs : ''}]${infoExtra}`, 
+                preco: precoFinal 
+            });
+            atualizarCarrinho();
+            fechar();
+        };
+
+        window.atualizarCarrinho = () => {
+            document.getElementById('cart-count').innerText = carrinho.length;
+            let html = "", total = 0;
+            carrinho.forEach((item, i) => {
+                total += item.preco;
+                html += `<div class="bg-gray-50 p-3 rounded-xl border text-[8px] font-bold">${item.nome} <br> <span class="text-red-600">R$ ${item.preco.toFixed(2)}</span><button onclick="remover(${i})" class="float-right text-gray-400"><i class="fas fa-trash"></i></button></div>`;
+            });
+            document.getElementById('itens-carrinho').innerHTML = html;
+            document.getElementById('total').innerText = `R$ ${total.toFixed(2)}`;
+        };
+
         window.enviarWhatsApp = () => {
             const n = document.getElementById('nome').value, e = document.getElementById('endereco').value, w = document.getElementById('whatsapp').value;
             if(!n || !e || !w) return alert("Preencha tudo!");
-            let msg = `*RESTAURANTE VITÓRIA - PEDIDO*\n\n👤 *Cliente:* ${n}\n🏠 *Endereço:* ${e}\n\n🛒 *ITENS:*\n`;
-            let t = 0; carrinho.forEach(i => { msg += `• ${i.nome} - R$ ${i.preco.toFixed(2)}\n`; t += i.preco; });
-            msg += `\n💰 *TOTAL: R$ ${t.toFixed(2)}*`;
+            let msg = `*RESTAURANTE VITÓRIA*\n👤 *Cliente:* ${n}\n🏠 *Endereço:* ${e}\n\n🛒 *PEDIDO:*\n`;
+            carrinho.forEach(i => msg += `• ${i.nome} - R$ ${i.preco.toFixed(2)}\n`);
+            msg += `\n💰 *TOTAL: ${document.getElementById('total').innerText}*`;
             
-            // COLOQUE SEU WHATSAPP REAL AQUI
-            const foneLoja = "5541999999999"; 
-            window.open(`https://api.whatsapp.com/send?phone=${foneLoja}&text=${encodeURIComponent(msg)}`, '_blank');
+            const fone = "5541999999999"; // COLOQUE SEU NUMERO AQUI
+            window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`, '_blank');
         };
+
+        window.addDireto = (n, p) => { carrinho.push({ nome: n, preco: p }); atualizarCarrinho(); toggleCarrinho(); };
+        window.toggleCarrinho = () => document.getElementById('carrinho-view').classList.toggle('hidden');
+        window.abrirCardapio = () => document.getElementById('modal-cardapio').style.display = 'flex';
+        window.fecharCardapio = () => document.getElementById('modal-cardapio').style.display = 'none';
+        window.remover = (i) => { carrinho.splice(i, 1); atualizarCarrinho(); };
+        window.fechar = () => document.getElementById('modal-montar').style.display = 'none';
+        window.abrirCadastro = () => { if(carrinho.length > 0) document.getElementById('modal-cadastro').style.display = 'flex'; };
+        window.fecharCadastro = () => document.getElementById('modal-cadastro').style.display = 'none';
     </script>
 </body>
 </html>
