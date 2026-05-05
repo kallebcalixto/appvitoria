@@ -3,53 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Vitória - Admin</title>
+    <title>Admin - Restaurante Vitória</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: #0f172a; font-family: 'Inter', sans-serif; }
         #painel-admin { display: none; }
-        .login-card { background: white; border-radius: 40px; padding: 40px; width: 100%; max-width: 400px; }
+        .card { background: white; border-radius: 30px; padding: 30px; shadow: 0 10px 25px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div id="login-screen" class="login-card text-center bg-white shadow-2xl">
-        <div class="bg-red-100 text-red-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-lock text-3xl"></i></div>
-        <h1 class="text-2xl font-black text-gray-800 mb-6 uppercase italic">Senha Admin</h1>
-        <input type="password" id="senha-input" placeholder="Senha" class="w-full bg-gray-100 border-none p-5 rounded-3xl text-center text-2xl outline-none mb-6">
-        <button onclick="verificarSenha()" class="w-full bg-red-600 text-white py-5 rounded-3xl font-black shadow-xl">ENTRAR</button>
+    <!-- LOGIN -->
+    <div id="login-screen" class="card text-center w-full max-w-sm">
+        <h1 class="text-xl font-black mb-6 uppercase tracking-tighter">Acesso Administrativo</h1>
+        <input type="password" id="senha-input" placeholder="Senha" class="w-full bg-gray-100 p-4 rounded-2xl text-center mb-4 outline-none">
+        <button onclick="verificarSenha()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-bold">ENTRAR</button>
     </div>
 
-    <div id="painel-admin" class="bg-white w-full max-w-md rounded-[40px] shadow-2xl overflow-hidden">
-        <div class="bg-red-600 p-8 text-center text-white relative">
-            <button onclick="location.reload()" class="absolute left-6 top-8 text-white/50"><i class="fas fa-sign-out-alt"></i></button>
-            <h1 class="text-2xl font-black italic uppercase">Painel Vitória</h1>
+    <!-- PAINEL -->
+    <div id="painel-admin" class="card w-full max-w-md overflow-hidden p-0">
+        <div class="bg-red-600 p-6 text-white text-center relative">
+            <button onclick="location.reload()" class="absolute left-4 top-6 opacity-50"><i class="fas fa-sign-out-alt"></i></button>
+            <h2 class="font-black uppercase italic">Painel Restaurante Vitória</h2>
         </div>
 
-        <div class="p-8 space-y-6">
-            <!-- STATUS LOJA -->
-            <div class="grid grid-cols-2 gap-4">
-                <button id="btn-abrir" onclick="alterarStatus(true)" class="py-5 rounded-3xl font-black border-2 transition-all">ABERTA</button>
-                <button id="btn-fechar" onclick="alterarStatus(false)" class="py-5 rounded-3xl font-black border-2 transition-all">FECHADA</button>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-2 gap-3">
+                <button id="btn-abrir" onclick="setLoja(true)" class="py-4 rounded-2xl font-black border-2 transition-all">ABERTA</button>
+                <button id="btn-fechar" onclick="setLoja(false)" class="py-4 rounded-2xl font-black border-2 transition-all">FECHADA</button>
             </div>
+
+            <button id="btn-feijoada" onclick="setFeijoada()" class="w-full py-4 rounded-2xl font-black border-2"></button>
 
             <hr>
 
-            <!-- CONTROLE FEIJOADA -->
-            <div class="bg-orange-50 p-4 rounded-3xl border border-orange-100">
-                <p class="text-[10px] font-black text-orange-600 uppercase text-center mb-3">Forçar Feijoada fora de Sábado?</p>
-                <button id="btn-feijoada" onclick="toggleFeijoada()" class="w-full py-4 rounded-2xl font-black shadow-sm transition-all"></button>
-            </div>
-
-            <hr>
-
-            <!-- EDITAR CARDÁPIO -->
             <div>
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 text-center">Cardápio do Dia</label>
-                <textarea id="texto-cardapio-input" rows="5" class="w-full p-5 bg-gray-50 border-none rounded-3xl outline-none italic"></textarea>
-                <button onclick="salvarCardapio()" class="w-full bg-slate-800 text-white py-5 mt-4 rounded-3xl font-black shadow-xl">SALVAR CARDÁPIO</button>
+                <label class="text-[10px] font-black text-gray-400 uppercase">Preço Carne Extra (R$)</label>
+                <input type="number" id="valor-extra" step="0.01" class="w-full p-4 bg-gray-50 rounded-xl font-bold text-red-600">
             </div>
+
+            <div>
+                <label class="text-[10px] font-black text-gray-400 uppercase">Carnes do Dia (Uma por linha)</label>
+                <textarea id="carnes-hoje" rows="3" class="w-full p-4 bg-gray-50 rounded-xl text-sm italic outline-none focus:ring-2 focus:ring-red-500"></textarea>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black text-gray-400 uppercase">Acompanhamentos (Uma por linha)</label>
+                <textarea id="acompanhamentos-hoje" rows="4" class="w-full p-4 bg-gray-50 rounded-xl text-sm italic outline-none focus:ring-2 focus:ring-red-500"></textarea>
+            </div>
+
+            <button onclick="salvarTudo()" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black shadow-lg">SALVAR TUDO</button>
         </div>
     </div>
 
@@ -69,39 +73,42 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let feijoadaStatus = false;
+        let config = {};
 
         window.verificarSenha = () => {
             if(document.getElementById('senha-input').value === "tony1979") {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('painel-admin').style.display = 'block';
-                carregarAdmin();
-            } else { alert("Senha Incorreta!"); }
+                carregar();
+            } else alert("Senha incorreta!");
         };
 
-        function carregarAdmin() {
+        function carregar() {
             onValue(ref(db, 'config'), (snap) => {
-                const data = snap.val() || {};
-                document.getElementById('texto-cardapio-input').value = data.texto_cardapio || "";
-                feijoadaStatus = data.forcar_feijoada || false;
+                config = snap.val() || {};
+                document.getElementById('valor-extra').value = config.valor_carne_extra || 0;
+                document.getElementById('carnes-hoje').value = config.carnes || "";
+                document.getElementById('acompanhamentos-hoje').value = config.acompanhamentos || "";
                 
-                // Botão Feijoada
-                const btnFei = document.getElementById('btn-feijoada');
-                btnFei.innerText = feijoadaStatus ? "FEIJOADA FORÇADA: SIM ✅" : "FEIJOADA FORÇADA: NÃO ❌";
-                btnFei.className = feijoadaStatus ? "w-full py-4 rounded-2xl font-black bg-orange-500 text-white" : "w-full py-4 rounded-2xl font-black bg-white text-orange-500 border border-orange-200";
-
-                // Botões Loja
                 const btnA = document.getElementById('btn-abrir'), btnF = document.getElementById('btn-fechar');
-                btnA.className = data.loja_aberta ? "py-5 rounded-3xl font-black border-green-500 bg-green-50 text-green-600" : "py-5 rounded-3xl font-black border-gray-100 bg-gray-50 text-gray-300";
-                btnF.className = !data.loja_aberta ? "py-5 rounded-3xl font-black border-red-500 bg-red-100 text-red-600" : "py-5 rounded-3xl font-black border-gray-100 bg-gray-50 text-gray-300";
+                btnA.className = config.loja_aberta ? "py-4 rounded-2xl font-black bg-green-50 text-green-600 border-green-500" : "py-4 rounded-2xl font-black bg-gray-50 text-gray-300 border-gray-100";
+                btnF.className = !config.loja_aberta ? "py-4 rounded-2xl font-black bg-red-50 text-red-600 border-red-500" : "py-4 rounded-2xl font-black bg-gray-50 text-gray-300 border-gray-100";
+                
+                const btnFei = document.getElementById('btn-feijoada');
+                btnFei.innerText = config.forcar_feijoada ? "FEIJOADA HOJE: SIM" : "FEIJOADA HOJE: NÃO";
+                btnFei.className = config.forcar_feijoada ? "w-full py-4 rounded-2xl font-black bg-orange-500 text-white border-orange-600" : "w-full py-4 rounded-2xl font-black bg-white text-orange-500 border-orange-100";
             });
         }
 
-        window.alterarStatus = (s) => set(ref(db, 'config/loja_aberta'), s);
-        window.toggleFeijoada = () => set(ref(db, 'config/forcar_feijoada'), !feijoadaStatus);
-        window.salvarCardapio = () => {
-            const txt = document.getElementById('texto-cardapio-input').value;
-            set(ref(db, 'config/texto_cardapio'), txt).then(() => alert("Salvo!"));
+        window.setLoja = (s) => set(ref(db, 'config/loja_aberta'), s);
+        window.setFeijoada = () => set(ref(db, 'config/forcar_feijoada'), !config.forcar_feijoada);
+        window.salvarTudo = () => {
+            set(ref(db, 'config'), {
+                ...config,
+                valor_carne_extra: parseFloat(document.getElementById('valor-extra').value) || 0,
+                carnes: document.getElementById('carnes-hoje').value,
+                acompanhamentos: document.getElementById('acompanhamentos-hoje').value
+            }).then(() => alert("Atualizado!"));
         };
     </script>
 </body>
