@@ -26,7 +26,7 @@
     <header class="bg-red-600 text-white p-5 sticky top-0 z-50 shadow-lg flex justify-between items-center">
         <div>
             <h1 class="text-2xl font-black italic tracking-tighter">RESTAURANTE VITÓRIA</h1>
-            <p class="text-[10px] font-medium opacity-80 uppercase tracking-widest">Peça sua refeição aqui</p>
+            <p class="text-[10px] font-medium opacity-80 uppercase tracking-widest">Pedidos Online</p>
         </div>
         <button onclick="toggleCarrinho()" class="relative p-3 bg-red-700 rounded-2xl shadow-inner">
             <i class="fas fa-shopping-bag text-xl"></i>
@@ -40,23 +40,25 @@
         </button>
 
         <h2 class="text-gray-800 font-black text-xl mb-4 flex items-center gap-2 uppercase italic">
-            <span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Nosso Cardápio
+            <span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Opções do Dia
         </h2>
 
         <div id="lista-produtos" class="grid grid-cols-2 gap-3">
-            <div class="col-span-2 text-center py-10 text-gray-400">Carregando...</div>
+            <div class="col-span-2 text-center py-10 text-gray-400">Carregando produtos...</div>
         </div>
     </main>
 
+    <!-- Modal Cardápio -->
     <div id="modal-cardapio" class="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col items-center justify-center p-6">
         <button onclick="fecharCardapio()" class="absolute top-5 right-5 text-white text-4xl">&times;</button>
         <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[80vh]">
             <h3 class="text-red-600 font-black text-xl mb-4 text-center uppercase italic border-b pb-2">Prato do Dia</h3>
-            <div id="texto-cardapio-view" class="text-gray-700 text-lg leading-relaxed font-medium text-center italic">Carregando menu...</div>
+            <div id="texto-cardapio-view" class="text-gray-700 text-lg leading-relaxed font-medium text-center italic">Carregando...</div>
             <button onclick="fecharCardapio()" class="w-full mt-6 bg-gray-100 py-3 rounded-xl font-bold text-gray-500 uppercase text-xs">Fechar</button>
         </div>
     </div>
 
+    <!-- Carrinho -->
     <div id="carrinho-view" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden">
         <div class="absolute right-0 top-0 w-full max-w-[300px] h-full bg-white shadow-2xl flex flex-col">
             <div class="p-4 bg-red-600 text-white flex justify-between items-center">
@@ -74,6 +76,7 @@
         </div>
     </div>
 
+    <!-- Cadastro Cliente -->
     <div id="modal-cadastro" class="fixed inset-0 bg-black bg-opacity-80 z-[70] items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[30px] p-6 shadow-2xl">
             <h2 class="text-2xl font-black text-center text-gray-800 mb-6 uppercase italic">Entrega</h2>
@@ -82,7 +85,7 @@
                 <input type="text" id="endereco" placeholder="Endereço e Bairro" class="w-full bg-gray-100 border-none p-4 rounded-2xl outline-none">
                 <input type="tel" id="whatsapp" placeholder="WhatsApp (DDD)" class="w-full bg-gray-100 border-none p-4 rounded-2xl outline-none">
             </div>
-            <button onclick="enviarWhatsApp()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black text-lg mt-8 flex items-center justify-center gap-2"><i class="fab fa-whatsapp text-2xl"></i> ENVIAR NO WHATSAPP</button>
+            <button onclick="enviarWhatsApp()" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black text-lg mt-8 flex items-center justify-center gap-2"><i class="fab fa-whatsapp text-2xl"></i> ENVIAR PEDIDO</button>
             <button onclick="fecharCadastro()" class="w-full text-gray-400 mt-4 text-xs font-bold uppercase">Voltar</button>
         </div>
     </div>
@@ -109,7 +112,7 @@
         let forcarFeijoada = false;
         const diaHoje = new Date().getDay();
 
-        // Escutar Configurações (Loja e Feijoada Forçada)
+        // Escutar Configurações Globais
         onValue(ref(db, 'config'), (snap) => {
             const cfg = snap.val() || {};
             forcarFeijoada = cfg.forcar_feijoada || false;
@@ -124,7 +127,7 @@
                 btn.disabled = false; btn.classList.replace('bg-gray-400', 'bg-green-500');
                 btn.innerText = "FINALIZAR PEDIDO";
             }
-            carregarProdutos();
+            carregarProdutos(); // Recarrega sempre que o status da feijoada mudar
         });
 
         onValue(ref(db, 'config/texto_cardapio'), (snap) => {
@@ -136,17 +139,24 @@
                 const data = snap.val();
                 const container = document.getElementById('lista-produtos');
                 container.innerHTML = "";
+                
+                // Define se a feijoada está ativa agora
+                const feijoadaAtiva = (forcarFeijoada || diaHoje === 6);
+
                 for (let id in data) {
                     const p = data[id];
                     const nome = (p.nome || "").toLowerCase();
                     
-                    // 1. NUNCA BUFFET
-                    if (nome.includes("buffet")) continue;
-                    // 2. NUNCA VIDRO
-                    if (nome.includes("vidro")) continue;
-                    // 3. REGRA FEIJOADA (Sábado OU Forçado pelo Admin)
-                    if (nome.includes("feijoada")) {
-                        if (!forcarFeijoada && diaHoje !== 6) continue;
+                    // 1. REGRAS DE BLOQUEIO PERMANENTE
+                    if (nome.includes("buffet") || nome.includes("vidro")) continue;
+
+                    // 2. REGRA DE ALTERNÂNCIA (FEIJOADA VS MARMITEX)
+                    if (feijoadaAtiva) {
+                        // Se a feijoada está ativa, esconde as Marmitex comuns
+                        if (nome.includes("marmitex") && !nome.includes("feijoada")) continue;
+                    } else {
+                        // Se NÃO é dia de feijoada, esconde a feijoada
+                        if (nome.includes("feijoada")) continue;
                     }
 
                     const img = p.foto || p.imagem || 'https://via.placeholder.com/150?text=Vitoria';
@@ -192,7 +202,10 @@
             let msg = `*RESTAURANTE VITÓRIA - PEDIDO*\n\n👤 *Cliente:* ${n}\n🏠 *Endereço:* ${e}\n\n🛒 *ITENS:*\n`;
             let t = 0; carrinho.forEach(i => { msg += `• ${i.nome} - R$ ${i.preco.toFixed(2)}\n`; t += i.preco; });
             msg += `\n💰 *TOTAL: R$ ${t.toFixed(2)}*`;
-            window.open(`https://api.whatsapp.com/send?phone=41991399766&text=${encodeURIComponent(msg)}`, '_blank');
+            
+            // COLOQUE SEU WHATSAPP REAL AQUI
+            const foneLoja = "5541999999999"; 
+            window.open(`https://api.whatsapp.com/send?phone=${foneLoja}&text=${encodeURIComponent(msg)}`, '_blank');
         };
     </script>
 </body>
