@@ -9,50 +9,42 @@
     <style>
         body { background-color: #0f172a; font-family: 'Inter', sans-serif; }
         #painel-admin { display: none; }
-        .card { background: white; border-radius: 30px; padding: 30px; shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .card { background: white; border-radius: 30px; padding: 30px; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- LOGIN -->
-    <div id="login-screen" class="card text-center w-full max-w-sm">
-        <h1 class="text-xl font-black mb-6 uppercase tracking-tighter">Acesso Administrativo</h1>
+    <div id="login-screen" class="card text-center w-full max-w-sm shadow-2xl">
+        <h1 class="text-xl font-black mb-6 uppercase">Acesso Admin</h1>
         <input type="password" id="senha-input" placeholder="Senha" class="w-full bg-gray-100 p-4 rounded-2xl text-center mb-4 outline-none">
         <button onclick="verificarSenha()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-bold">ENTRAR</button>
     </div>
 
-    <!-- PAINEL -->
-    <div id="painel-admin" class="card w-full max-w-md overflow-hidden p-0">
-        <div class="bg-red-600 p-6 text-white text-center relative">
-            <button onclick="location.reload()" class="absolute left-4 top-6 opacity-50"><i class="fas fa-sign-out-alt"></i></button>
-            <h2 class="font-black uppercase italic">Painel Restaurante Vitória</h2>
-        </div>
-
+    <div id="painel-admin" class="card w-full max-w-md overflow-hidden p-0 shadow-2xl">
+        <div class="bg-red-600 p-6 text-white text-center italic font-black uppercase">Painel de Controle</div>
         <div class="p-6 space-y-6">
             <div class="grid grid-cols-2 gap-3">
                 <button id="btn-abrir" onclick="setLoja(true)" class="py-4 rounded-2xl font-black border-2 transition-all">ABERTA</button>
                 <button id="btn-fechar" onclick="setLoja(false)" class="py-4 rounded-2xl font-black border-2 transition-all">FECHADA</button>
             </div>
-
             <button id="btn-feijoada" onclick="setFeijoada()" class="w-full py-4 rounded-2xl font-black border-2"></button>
-
             <hr>
-
             <div>
                 <label class="text-[10px] font-black text-gray-400 uppercase">Preço Carne Extra (R$)</label>
                 <input type="number" id="valor-extra" step="0.01" class="w-full p-4 bg-gray-50 rounded-xl font-bold text-red-600">
             </div>
-
             <div>
-                <label class="text-[10px] font-black text-gray-400 uppercase">Carnes do Dia (Uma por linha)</label>
-                <textarea id="carnes-hoje" rows="3" class="w-full p-4 bg-gray-50 rounded-xl text-sm italic outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                <label class="text-[10px] font-black text-gray-400 uppercase">Taxas de Entrega (Bairro - Valor)</label>
+                <textarea id="taxas-entrega" rows="3" placeholder="Ex: Centro - 5.00" class="w-full p-4 bg-gray-50 rounded-xl text-sm outline-none border-none"></textarea>
             </div>
-
             <div>
-                <label class="text-[10px] font-black text-gray-400 uppercase">Acompanhamentos (Uma por linha)</label>
-                <textarea id="acompanhamentos-hoje" rows="4" class="w-full p-4 bg-gray-50 rounded-xl text-sm italic outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                <label class="text-[10px] font-black text-gray-400 uppercase">Carnes do Dia</label>
+                <textarea id="carnes-hoje" rows="3" class="w-full p-4 bg-gray-50 rounded-xl text-sm italic outline-none"></textarea>
             </div>
-
+            <div>
+                <label class="text-[10px] font-black text-gray-400 uppercase">Acompanhamentos</label>
+                <textarea id="acompanhamentos-hoje" rows="4" class="w-full p-4 bg-gray-50 rounded-xl text-sm italic outline-none"></textarea>
+            </div>
             <button onclick="salvarTudo()" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black shadow-lg">SALVAR TUDO</button>
         </div>
     </div>
@@ -87,15 +79,14 @@
             onValue(ref(db, 'config'), (snap) => {
                 config = snap.val() || {};
                 document.getElementById('valor-extra').value = config.valor_carne_extra || 0;
+                document.getElementById('taxas-entrega').value = config.taxas_entrega || "";
                 document.getElementById('carnes-hoje').value = config.carnes || "";
                 document.getElementById('acompanhamentos-hoje').value = config.acompanhamentos || "";
-                
                 const btnA = document.getElementById('btn-abrir'), btnF = document.getElementById('btn-fechar');
                 btnA.className = config.loja_aberta ? "py-4 rounded-2xl font-black bg-green-50 text-green-600 border-green-500" : "py-4 rounded-2xl font-black bg-gray-50 text-gray-300 border-gray-100";
                 btnF.className = !config.loja_aberta ? "py-4 rounded-2xl font-black bg-red-50 text-red-600 border-red-500" : "py-4 rounded-2xl font-black bg-gray-50 text-gray-300 border-gray-100";
-                
                 const btnFei = document.getElementById('btn-feijoada');
-                btnFei.innerText = config.forcar_feijoada ? "FEIJOADA HOJE: SIM" : "FEIJOADA HOJE: NÃO";
+                btnFei.innerText = config.forcar_feijoada ? "FEIJOADA ATIVADA: SIM" : "FEIJOADA ATIVADA: NÃO";
                 btnFei.className = config.forcar_feijoada ? "w-full py-4 rounded-2xl font-black bg-orange-500 text-white border-orange-600" : "w-full py-4 rounded-2xl font-black bg-white text-orange-500 border-orange-100";
             });
         }
@@ -103,12 +94,7 @@
         window.setLoja = (s) => set(ref(db, 'config/loja_aberta'), s);
         window.setFeijoada = () => set(ref(db, 'config/forcar_feijoada'), !config.forcar_feijoada);
         window.salvarTudo = () => {
-            set(ref(db, 'config'), {
-                ...config,
-                valor_carne_extra: parseFloat(document.getElementById('valor-extra').value) || 0,
-                carnes: document.getElementById('carnes-hoje').value,
-                acompanhamentos: document.getElementById('acompanhamentos-hoje').value
-            }).then(() => alert("Atualizado!"));
+            set(ref(db, 'config'), { ...config, valor_carne_extra: parseFloat(document.getElementById('valor-extra').value) || 0, taxas_entrega: document.getElementById('taxas-entrega').value, carnes: document.getElementById('carnes-hoje').value, acompanhamentos: document.getElementById('acompanhamentos-hoje').value }).then(() => alert("Atualizado!"));
         };
     </script>
 </body>
