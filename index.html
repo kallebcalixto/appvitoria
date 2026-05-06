@@ -238,7 +238,7 @@
             let msg = `*RESTAURANTE VITÓRIA*\n👤 *Cliente:* ${n}\n🏠 *Endereço:* ${e}\n\n🛒 *PEDIDO:*\n`;
             carrinho.forEach(i => msg += `• ${i.nome} - R$ ${i.preco.toFixed(2)}\n`);
             msg += `\n💰 *TOTAL: ${document.getElementById('total').innerText}*`;
-            const fone = "5541999999999"; // COLOQUE SEU NÚMERO AQUI
+            const fone = "41991399766"; // COLOQUE SEU NÚMERO AQUI
             window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`, '_blank');
         };
 
