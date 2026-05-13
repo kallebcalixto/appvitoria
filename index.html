@@ -37,7 +37,6 @@
         <div id="lista-produtos" class="grid grid-cols-2 gap-3"></div>
     </main>
 
-    <!-- GAVETA MONTAGEM -->
     <div id="modal-montar" class="fixed inset-0 bg-black bg-opacity-80 z-[110] flex items-end justify-center">
         <div class="bg-white w-full rounded-t-[40px] p-6 animate-up overflow-y-auto max-h-[95vh]">
             <div class="w-10 h-1 bg-gray-200 mx-auto mb-4 rounded-full"></div>
@@ -57,7 +56,6 @@
         </div>
     </div>
 
-    <!-- Carrinho -->
     <div id="carrinho-view" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden">
         <div class="absolute right-0 top-0 w-full max-w-[300px] h-full bg-white flex flex-col shadow-2xl">
             <div class="p-6 bg-red-600 text-white flex justify-between items-center shadow-md">
@@ -72,7 +70,6 @@
         </div>
     </div>
 
-    <!-- Checkout -->
     <div id="modal-cadastro" class="fixed inset-0 bg-black bg-opacity-80 z-[120] items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl text-center">
             <h2 class="text-2xl font-black mb-6 uppercase italic">Checkout</h2>
@@ -98,7 +95,6 @@
         </div>
     </div>
 
-    <!-- Modal Cardápio -->
     <div id="modal-cardapio" class="fixed inset-0 bg-black bg-opacity-95 z-[100] flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[40px] p-8 overflow-y-auto max-h-[80vh]">
             <h3 class="text-red-600 font-black text-xl mb-4 text-center italic border-b pb-2 uppercase">Menu de Hoje</h3>
@@ -107,7 +103,6 @@
         </div>
     </div>
 
-    <!-- BOTÃO ADMIN (RECOLOCADO AQUI) -->
     <a href="admin.html" class="fixed bottom-4 left-4 bg-gray-800 text-white px-3 py-2 rounded-full text-[10px] font-bold opacity-30 hover:opacity-100 z-[200] flex items-center gap-2">
         <i class="fas fa-cog"></i> ADMIN
     </a>
@@ -138,8 +133,9 @@
                 const p = l.split('-');
                 bSelect.innerHTML += `<option value="${p[1].trim()}" data-nome="${p[0].trim()}">${p[0].trim()} (Taxa: R$ ${p[1].trim()})</option>`;
             });
+
+            document.getElementById('texto-cardapio-view').innerText = config.texto_cardapio || "O cardápio de hoje está sendo preparado!";
             
-            // Status Loja
             const btnFim = document.getElementById('btn-finalizar-pedido');
             const listaP = document.getElementById('lista-produtos');
             if (config.loja_aberta === false) {
@@ -168,7 +164,10 @@
                 for (let id in data) {
                     const p = data[id];
                     const n = (p.nome || "").toLowerCase();
-                    if (n.includes("buffet") || n.includes("vidro")) continue;
+                    
+                    // FILTRO ATUALIZADO: IGNRORA BUFFET, VIDRO E PRATO FEITO / PF
+                    if (n.includes("buffet") || n.includes("vidro") || n.includes("prato feito") || n.includes(" pf")) continue;
+                    
                     if (feiAtiva) { if (n.includes("marmitex") && !n.includes("feijoada")) continue; }
                     else { if (n.includes("feijoada")) continue; }
                     const isMarmita = n.includes("marmita") || n.includes("marmitex");
