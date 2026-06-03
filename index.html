@@ -134,7 +134,12 @@
                 bSelect.innerHTML += `<option value="${p[1].trim()}" data-nome="${p[0].trim()}">${p[0].trim()} (Taxa: R$ ${p[1].trim()})</option>`;
             });
 
-            document.getElementById('texto-cardapio-view').innerText = config.texto_cardapio || "O cardápio de hoje está sendo preparado!";
+            // CORREÇÃO APLICADA AQUI:
+            const containerCardapio = document.getElementById('texto-cardapio-view');
+            containerCardapio.innerHTML = `
+                <div class="mb-4 text-sm"><strong>Carnes:</strong><br>${(config.carnes || "").replace(/\n/g, '<br>')}</div>
+                <div class="text-sm"><strong>Acompanhamentos:</strong><br>${(config.acompanhamentos || "").replace(/\n/g, '<br>')}</div>
+            `;
             
             const btnFim = document.getElementById('btn-finalizar-pedido');
             const listaP = document.getElementById('lista-produtos');
@@ -165,7 +170,6 @@
                     const p = data[id];
                     const n = (p.nome || "").toLowerCase();
                     
-                    // FILTRO ATUALIZADO: IGNRORA BUFFET, VIDRO E PRATO FEITO / PF
                     if (n.includes("buffet") || n.includes("vidro") || n.includes("prato feito") || n.includes(" pf")) continue;
                     
                     if (feiAtiva) { if (n.includes("marmitex") && !n.includes("feijoada")) continue; }
